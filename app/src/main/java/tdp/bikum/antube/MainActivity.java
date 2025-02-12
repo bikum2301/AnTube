@@ -22,13 +22,11 @@ import androidx.media3.common.Player;
 import androidx.media3.common.util.UnstableApi;
 import androidx.media3.exoplayer.ExoPlayer;
 import androidx.media3.ui.PlayerView;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import tdp.bikum.antube.adapters.VideoAdapter;
-import tdp.bikum.antube.models.Video;
 import tdp.bikum.antube.services.PlaybackService;
+import android.view.Menu;
+import android.view.MenuItem;
+
+import tdp.bikum.antube.utils.SessionManager;
 
 @UnstableApi
 public class MainActivity extends AppCompatActivity { // Loại bỏ implements VideoAdapter.OnVideoClickListener
@@ -37,7 +35,8 @@ public class MainActivity extends AppCompatActivity { // Loại bỏ implements 
     private PlayerView playerView;
     private ActivityResultLauncher<PickVisualMediaRequest> pickMediaLauncher;
     private com.google.android.material.bottomnavigation.BottomNavigationView bottomNavigationView;
-    private Button chooseVideoButton; // Thêm biến Button
+    private Button chooseVideoButton;
+    private SessionManager sessionManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,7 +50,13 @@ public class MainActivity extends AppCompatActivity { // Loại bỏ implements 
 
         bottomNavigationView = findViewById(R.id.bottom_navigation);
 
-        chooseVideoButton = findViewById(R.id.choose_video_button); // Khởi tạo Button
+        chooseVideoButton = findViewById(R.id.choose_video_button);
+        sessionManager = new SessionManager(this);
+        if (!sessionManager.isLoggedIn()) {
+            startActivity(new Intent(MainActivity.this, LoginActivity.class));
+            finish();
+            return; // Dừng khởi tạo MainActivity nếu chưa đăng nhập
+        }
 
         // Khởi tạo ActivityResultLauncher cho Photo Picker
         pickMediaLauncher = registerForActivityResult(new ActivityResultContracts.PickVisualMedia(), uri -> {
@@ -83,6 +88,29 @@ public class MainActivity extends AppCompatActivity { // Loại bỏ implements 
                 }
             }
         });
+    }
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main_menu, menu); // Tạo menu từ main_menu.xml
+        return true;
+    }
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        if (id == R.id.action_profile) {
+            startActivity(new Intent(MainActivity.this, ProfileActivity.class));
+            return true;
+        } else if (id == R.id.action_logout) {
+            logout();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    private void logout() {
+        sessionManager.clearSession();
+        startActivity(new Intent(MainActivity.this, LoginActivity.class));
+        finishAffinity(); // Đóng tất cả các activity
     }
 
 
