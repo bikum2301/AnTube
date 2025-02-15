@@ -56,24 +56,39 @@ public class LoginActivity extends AppCompatActivity {
         }
 
         LoginRequest loginRequest = new LoginRequest(email, password);
-        Log.d("LoginActivity", "performLogin: Gọi API loginUser..."); // Log trước khi gọi API
+        Log.d("LoginActivity", "performLogin: Gọi API loginUser...");
         Call<ApiResponse<User>> call = ApiClient.getApiService().loginUser(loginRequest);
         call.enqueue(new Callback<ApiResponse<User>>() {
             @OptIn(markerClass = UnstableApi.class)
             @Override
             public void onResponse(Call<ApiResponse<User>> call, Response<ApiResponse<User>> response) {
-                Log.d("LoginActivity", "onResponse: Login API callback received"); // Log khi callback onResponse được gọi
-                // **Áp dụng logic IF từ RegisterActivity.java**
-                if (response.isSuccessful()) { // Kiểm tra response.isSuccessful()
+                Log.d("LoginActivity", "onResponse: Login API callback received");
+                if (response.isSuccessful()) {
                     Log.d("LoginActivity", "Đăng nhập thành công - response.isSuccessful(): " + response.isSuccessful());
                     Toast.makeText(LoginActivity.this, "Đăng nhập thành công!", Toast.LENGTH_SHORT).show();
-                    Log.d("LoginActivity", "onResponse: Chuẩn bị Intent đến MainActivity"); // Log trước Intent
+
+                    Log.d("LoginActivity", "onResponse: Response Body: " + response.body().toString());
+                    // **ĐOẠN CODE THÊM VÀO ĐỂ LƯU SESSION**
+                    User loggedInUser = response.body().getData(); // Lấy đối tượng User từ response
+                    if (loggedInUser != null) {
+                        Log.d("LoginActivity", "onResponse: User ID từ API: " + loggedInUser.getId()); // Log User ID
+                        sessionManager.saveUserSession(loggedInUser.getId(), loggedInUser.getEmail()); // **LƯU SESSION VỚI USER OBJECT**
+                        Log.d("LoginActivity", "onResponse: Session đã được lưu vào SessionManager"); // Log sau khi lưu session
+                    } else {
+                        Log.e("LoginActivity", "onResponse: Lỗi: Không nhận được thông tin User từ API response"); // Log lỗi nếu không có User
+                        Toast.makeText(LoginActivity.this, "Lỗi đăng nhập: Không nhận được thông tin người dùng.", Toast.LENGTH_SHORT).show();
+                        return; // Dừng lại nếu không có thông tin User
+                    }
+                    // **KẾT THÚC ĐOẠN CODE THÊM VÀO**
+
+
+                    Log.d("LoginActivity", "onResponse: Chuẩn bị Intent đến MainActivity");
                     Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-                    Log.d("LoginActivity", "onResponse: Bắt đầu Activity MainActivity..."); // Log trước startActivity
+                    Log.d("LoginActivity", "onResponse: Bắt đầu Activity MainActivity...");
                     startActivity(intent);
-                    Log.d("LoginActivity", "onResponse: startActivity() đã được gọi"); // Log sau startActivity
+                    Log.d("LoginActivity", "onResponse: startActivity() đã được gọi");
                     finish();
-                    Log.d("LoginActivity", "onResponse: finish() đã được gọi"); // Log sau finish
+                    Log.d("LoginActivity", "onResponse: finish() đã được gọi");
 
                 } else {
                     Log.e("LoginActivity", "Đăng nhập thất bại - response.isSuccessful: false, code: " + response.code());
@@ -83,7 +98,7 @@ public class LoginActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(Call<ApiResponse<User>> call, Throwable t) {
-                Log.e("LoginActivity", "Đăng nhập thất bại - onFailure: " + t.getMessage()); // Log lỗi chi tiết
+                Log.e("LoginActivity", "Đăng nhập thất bại - onFailure: " + t.getMessage());
                 Toast.makeText(LoginActivity.this, "Đăng nhập thất bại: Lỗi mạng: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
