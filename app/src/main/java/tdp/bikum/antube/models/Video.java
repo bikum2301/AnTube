@@ -3,14 +3,16 @@ package tdp.bikum.antube.models;
 public class Video {
     private String id;
     private String title;
-    private String url;
+    private String url; // **TRƯỜNG URL NÀY KHÔNG CẦN THIẾT CHO VIDEO LOCAL, CÓ THỂ XÓA HOẶC ĐỂ NGUYÊN**
+    private String path; // **THÊM TRƯỜNG PATH ĐỂ LƯU ĐƯỜNG DẪN FILE VIDEO LOCAL**
     private String thumbnailUrl;
 
     // Constructor
-    public Video(String id, String title, String url, String thumbnailUrl) {
+    public Video(String id, String title, String path, String thumbnailUrl) { // **SỬA CONSTRUCTOR ĐỂ NHẬN THAM SỐ PATH**
         this.id = id;
         this.title = title;
-        this.url = url;
+        this.url = url; // **CÓ THỂ ĐỂ NGUYÊN HOẶC KHÔNG SỬ DỤNG**
+        this.path = path; // **THÊM DÒNG NÀY**
         this.thumbnailUrl = thumbnailUrl;
     }
 
@@ -37,6 +39,14 @@ public class Video {
 
     public void setUrl(String url) {
         this.url = url;
+    }
+
+    public String getPath() { // **GETTER CHO PATH**
+        return path;
+    }
+
+    public void setPath(String path) { // **SETTER CHO PATH**
+        this.path = path;
     }
 
     public String getThumbnailUrl() {
